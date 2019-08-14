@@ -171,11 +171,23 @@ public class ArticleController {
 	}
 
 	@RequestMapping("/article/doDelete")
-	public String doDelete(Model model, @RequestParam Map<String, Object> param, HttpSession session, long id, long boardId) {
+	public String doDelete(Model model, HttpServletRequest request, @RequestParam Map<String, Object> param, HttpSession session, long id, long boardId) {
 		param.put("id", id);
-
+		
+		Article article = articleService.getOne(param);
+		
+		Member loginedMember = (Member) request.getAttribute("loginedMember");
+		
+		if(loginedMember.getPermissionLevel() != 1) {
+			if (loginedMember.getId() != article.getMemberId()) {
+				model.addAttribute("alertMsg", "권한이 없습니다.");
+				model.addAttribute("historyBack", true);
+				return "common/redirect";
+			}
+		}
+		
 		Map<String, Object> deleteRs = articleService.delete(param);
-
+		
 		String msg = (String) deleteRs.get("msg");
 		String resultCode = (String) deleteRs.get("resultCode");
 
@@ -218,8 +230,12 @@ public class ArticleController {
 	@ResponseBody
 	public Map<String, Object> doDeleteReply(Model model, @RequestParam Map<String, Object> param,
 			HttpSession session) {
-
+		
 		long loginedId = (long) session.getAttribute("loginedMemberId");
+		
+		Member loginedMember = memberService.getOne(loginedId);
+		param.put("loginedMember", loginedMember);
+		
 		param.put("loginedMemberId", loginedId);
 		Map<String, Object> deleteReplyRs = articleService.deleteReply(param);
 
@@ -241,6 +257,13 @@ public class ArticleController {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		long loginedId = (long) session.getAttribute("loginedMemberId");
+		
+		Member loginedMember = memberService.getOne(loginedId);
+		param.put("loginedMember", loginedMember);
+		
+		param.put("loginedMemberId", loginedId);
 
 		param.put("id", id);
 

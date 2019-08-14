@@ -12,6 +12,7 @@ import com.sbs.cuni.dao.ArticleDao;
 import com.sbs.cuni.dto.Article;
 import com.sbs.cuni.dto.ArticleReply;
 import com.sbs.cuni.dto.Board;
+import com.sbs.cuni.dto.Member;
 import com.sbs.cuni.util.CUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -118,16 +119,27 @@ public class ArticleServiceImpl implements ArticleService {
 	}
 
 	public Map<String, Object> updateReply(Map<String, Object> args) {
-
+		
 		Map<String, Object> rs = new HashMap<String, Object>();
-
+		
+		Member loginedMember = (Member) args.get("loginedMember");
+		int auth = loginedMember.getPermissionLevel();
+		int loginedMemberId = loginedMember.getId();
+		long replyId = (long) args.get("id");
+		
 		articleDao.modifyReply(args);
-
+		ArticleReply reply = articleDao.getReply(replyId);
+		
 		long id = (long) args.get("id");
-
-		rs.put("resultCode", "S-1");
-		rs.put("msg", id + "번 댓글이 수정되었습니다.");
-
+		
+		if (auth != 1 && loginedMemberId != reply.getMemberId()) {
+			rs.put("resultCode", "F-1");
+			rs.put("msg", "권한이 없습니다.");
+		}
+		else {
+			rs.put("resultCode", "S-1");
+			rs.put("msg", id + "번 댓글이 수정되었습니다.");
+		}
 		return rs;
 	}
 
@@ -156,14 +168,17 @@ public class ArticleServiceImpl implements ArticleService {
 		ArticleReply articleReply = articleDao.getReply(CUtil.getAsLong(param.get("id")));
 
 		long memberId = (long) param.get("loginedMemberId");
-
+		Member loginedMember = (Member) param.get("loginedMember");
+		
+		int auth = loginedMember.getPermissionLevel();
+		
 		String msg = "";
 		String resultCode = "";
 
 		if (articleReply == null) {
 			msg = "존재하지 않는 댓글 정보";
 			resultCode = "F-4";
-		} else if (articleReply.getMemberId() != memberId) {
+		} else if (auth != 1 && articleReply.getMemberId() != memberId) {
 			msg = "권한이 없습니다.";
 			resultCode = "F-4";
 		} else {
@@ -181,10 +196,6 @@ public class ArticleServiceImpl implements ArticleService {
 
 		if (article == null) {
 			return Maps.of("resultCode", "F-1", "msg", "존재하지 않는 게시물 입니다.");
-		}
-
-		if (memberService.isMasterMember(loginedMemberId)) {
-			return Maps.of("resultCode", "S-1", "msg", "마스터회원은 모든 게시물을 수정할 수 있습니다.");
 		}
 
 		if (article.getMemberId() == loginedMemberId) {
