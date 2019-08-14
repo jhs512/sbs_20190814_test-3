@@ -160,7 +160,7 @@ function Article__drawReply(reply) {
 	
 	var editableClass = '';
 	
-	if ( 회원번호 == loginedMemberId ) {
+	if ( 회원번호 == loginedMemberId) {
 		editableClass = 'editable';
 	}
 	

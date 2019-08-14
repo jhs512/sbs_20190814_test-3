@@ -127,10 +127,8 @@ public class ArticleServiceImpl implements ArticleService {
 		int loginedMemberId = loginedMember.getId();
 		long replyId = (long) args.get("id");
 		
-		articleDao.modifyReply(args);
-		ArticleReply reply = articleDao.getReply(replyId);
-		
 		long id = (long) args.get("id");
+		ArticleReply reply = articleDao.getReply(replyId);
 		
 		if (auth != 1 && loginedMemberId != reply.getMemberId()) {
 			rs.put("resultCode", "F-1");
@@ -139,6 +137,7 @@ public class ArticleServiceImpl implements ArticleService {
 		else {
 			rs.put("resultCode", "S-1");
 			rs.put("msg", id + "번 댓글이 수정되었습니다.");
+			articleDao.modifyReply(args);
 		}
 		return rs;
 	}
