@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.sbs.cuni.dto.Article;
 import com.sbs.cuni.dto.ArticleReply;
 import com.sbs.cuni.dto.Board;
+import com.sbs.cuni.dto.Member;
 import com.sbs.cuni.service.ArticleService;
+import com.sbs.cuni.service.MemberService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,12 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 public class ArticleController {
 	@Autowired
 	private ArticleService articleService;
+	@Autowired
+	private MemberService memberService;
 
 	// 게시물 리스팅
 	@RequestMapping("article/list")
 	public String showList(Model model, @RequestParam Map<String, Object> param, long boardId) {
 		Board board = articleService.getBoard(boardId);
-
+		
 		model.addAttribute("board", board);
 
 		// 게시물 가져올 때 댓글 개수도 가져오도록
@@ -80,7 +84,19 @@ public class ArticleController {
 	}
 
 	@RequestMapping("/article/add")
-	public String showAdd(long boardId, Model model) {
+	public String showAdd(long boardId, Model model, HttpServletRequest request) {
+
+		Member loginedMember = (Member)request.getAttribute("loginedMember"); 
+		
+		if (boardId == 1) {
+			if (loginedMember == null || loginedMember.getPermissionLevel() != 1) {
+				model.addAttribute("alertMsg", "권한이 없습니다.");
+				model.addAttribute("historyBack", true);
+
+				return "common/redirect";
+			}
+		}
+		
 		Board board = articleService.getBoard(boardId);
 
 		model.addAttribute("board", board);
