@@ -1,4 +1,6 @@
-﻿테스트 보고서
+﻿* GITHUB 리포지터리 주소 :  https://github.com/horohyun/sbs_20190814_test
+
+테스트 보고서
     - 공지사항은 관리자만 작성할 수 있다
         오류내역
             오류 1
