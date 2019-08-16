@@ -13,6 +13,7 @@ import com.sbs.cuni.dao.MemberDao;
 import com.sbs.cuni.dto.Member;
 import com.sbs.cuni.handler.MailHandler;
 import com.sbs.cuni.util.CUtil;
+import com.sbs.cuni.util.TempKeyGen;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,11 +130,17 @@ public class MemberServiceImpl implements MemberService {
 		String resultCode = null;
 		MailHandler mail;
 		try {
+			
+			String tempPw = new TempKeyGen().getKey(10, false);
+			System.out.println("임시 비번: " + tempPw);
+			param.put("tempPw", tempPw);
+			memberDao.updateMemberPw(param);
+			
 			mail = new MailHandler(sender);
 			mail.setFrom(emailSender, emailSenderName);
 			mail.setTo((String) param.get("email"));
-			mail.setSubject("회원님의 비밀번호가 발송되었습니다");
-			mail.setText(new StringBuffer().append("<h1>비밀번호는 " + member.getLoginPw() + " 입니다.</h1>").toString());
+			mail.setSubject("회원님의 임시 비밀번호가 발송되었습니다");
+			mail.setText(new StringBuffer().append("<h1>비밀번호는 " + tempPw + " 입니다.</h1>").toString());
 			mail.send();
 			msg = "메일이 발송되었습니다.";
 			resultCode = "S-2";
